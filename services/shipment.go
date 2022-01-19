@@ -21,7 +21,7 @@ type ShipmentRequest struct {
 type ShipmentService interface {
 	GetAllShipments() ([]models.Shipment, error)
 	AddShipment(shipmentReq *ShipmentRequest) (float64, error)
-	//GetShipmentByID(ID uint) (*models.Shipment, error)
+	GetShipmentByID(id uint) (*models.Shipment, error)
 }
 
 type shipmentService struct {
@@ -73,4 +73,14 @@ func (s *shipmentService) AddShipment(shipmentReq *ShipmentRequest) (float64, er
 	}
 
 	return price, nil
+}
+
+func (s *shipmentService) GetShipmentByID(id uint) (*models.Shipment, error) {
+	shipment, err := s.shipmentRepository.GetShipmentByID(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return shipment, nil
 }
