@@ -18,9 +18,9 @@ func ValidateEmail(email string) error {
 
 // validate name
 func ValidateName(name string) error {
-	var nameRegex = regexp.MustCompile("^[^0-9]+$")
+	var nameReg = regexp.MustCompile("^[^0-9]+$")
 
-	if len(name) > 30 || !nameRegex.MatchString(name) {
+	if len(name) > 30 || !nameReg.MatchString(name) {
 		return errors.New("invalid name")
 	}
 
@@ -29,10 +29,21 @@ func ValidateName(name string) error {
 
 // validate country code
 func ValidateCountryCode(code string) error {
-	var nameRegex = regexp.MustCompile("^[A-Z]{2}$")
+	var codeReg = regexp.MustCompile("^[A-Z]{2}$")
 
-	if !nameRegex.MatchString(code) {
+	if !codeReg.MatchString(code) {
 		return errors.New("invalid country code")
+	}
+
+	return nil
+}
+
+// validate country code
+func ValidateAddress(address string) error {
+	var addressReg = regexp.MustCompile("^[a-zA-Z\\s]+\\s\\d+\\,\\s[a-zA-Z0-9]+\\s[0-9]+$")
+
+	if len(address) > 100 || !addressReg.MatchString(address) {
+		return errors.New("invalid address")
 	}
 
 	return nil
