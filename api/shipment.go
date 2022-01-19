@@ -10,7 +10,7 @@ import (
 func UseShipment(gr *gin.RouterGroup, shipmentService services.ShipmentService) {
 	handler := gr.Group("shipment")
 	handler.GET("", getAllShipments(shipmentService))
-	//handler.POST("", addShipment(shipmentService))
+	handler.POST("", addShipment(shipmentService))
 	//handler.GET(":id", getShipment(shipmentService))
 }
 
@@ -29,6 +29,35 @@ func getAllShipments(shipmentService services.ShipmentService) gin.HandlerFunc {
 		c.JSON(http.StatusOK, gin.H{
 			"message":   "Shipments received!",
 			"shipments": shipments,
+		})
+	}
+}
+
+func addShipment(shipmentService services.ShipmentService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var shipmentReq *services.ShipmentRequest
+
+		err := c.BindJSON(&shipmentReq)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "invalid request",
+				"error":   err.Error(),
+			})
+			return
+		}
+
+		price, err := shipmentService.AddShipment(shipmentReq)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "Server error",
+				"error":   err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Shipment is added !",
+			"price":   price,
 		})
 	}
 }

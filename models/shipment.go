@@ -12,6 +12,6 @@ type Shipment struct {
 	ToEmail         string
 	ToAddress       string
 	ToCountryCode   string
-	Weight          uint
-	Price           uint
+	Weight          float64
+	Price           float64
 }
