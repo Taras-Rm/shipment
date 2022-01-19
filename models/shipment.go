@@ -2,6 +2,7 @@ package models
 
 import "gorm.io/gorm"
 
+// shipment model
 type Shipment struct {
 	gorm.Model
 	FromName        string

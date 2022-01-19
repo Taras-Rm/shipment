@@ -1,6 +1,8 @@
 package services
 
 import (
+	"errors"
+
 	"github.com/Taras-Rm/shipment/helpers"
 	"github.com/Taras-Rm/shipment/models"
 	"github.com/Taras-Rm/shipment/repositories"
@@ -43,15 +45,12 @@ func (s *shipmentService) GetAllShipments() ([]models.Shipment, error) {
 }
 
 func (s *shipmentService) AddShipment(shipmentReq *ShipmentRequest) (float64, error) {
-
+	// determine Region Rules (coefficient)
 	regionCoef := helpers.RegionRulesCoef(shipmentReq.FromCountryCode)
+	// determine Weight Class Rules (coefficient)
+	weightCoef := helpers.WeightClassRulesCoef(shipmentReq.Weight)
 
-	weightCoef, err := helpers.WeightClassRulesCoef(shipmentReq.Weight)
-
-	if err != nil {
-		return 0, err
-	}
-
+	// calculate price
 	price := regionCoef * float64(weightCoef)
 
 	shipment := models.Shipment{
@@ -67,7 +66,7 @@ func (s *shipmentService) AddShipment(shipmentReq *ShipmentRequest) (float64, er
 		Price:           price,
 	}
 
-	err = s.shipmentRepository.CreateShipment(&shipment)
+	err := s.shipmentRepository.CreateShipment(&shipment)
 	if err != nil {
 		return 0, err
 	}
@@ -83,4 +82,31 @@ func (s *shipmentService) GetShipmentByID(id uint) (*models.Shipment, error) {
 	}
 
 	return shipment, nil
+}
+
+func IsValidShipmentRequest(shipmentReq *ShipmentRequest) error {
+
+	fromErr := helpers.ValidateEmail(shipmentReq.FromEmail)
+	toErr := helpers.ValidateEmail(shipmentReq.ToEmail)
+	if fromErr != nil || toErr != nil {
+		return errors.New("uncorrect email")
+	}
+
+	nameFromErr := helpers.ValidateName(shipmentReq.FromName)
+	nameToErr := helpers.ValidateName(shipmentReq.ToName)
+	if nameFromErr != nil || nameToErr != nil {
+		return errors.New("uncorrect name")
+	}
+
+	codeFromErr := helpers.ValidateCountryCode(shipmentReq.FromCountryCode)
+	codeToErr := helpers.ValidateCountryCode(shipmentReq.ToCountryCode)
+	if codeFromErr != nil || codeToErr != nil {
+		return errors.New("uncorrect country code")
+	}
+
+	if shipmentReq.Weight <= 0 || shipmentReq.Weight > 1000 {
+		return errors.New("invalid weight")
+	}
+
+	return nil
 }

@@ -10,6 +10,8 @@ import (
 
 func UseShipment(gr *gin.RouterGroup, shipmentService services.ShipmentService) {
 	handler := gr.Group("shipment")
+
+	// endpoints
 	handler.GET("", getAllShipments(shipmentService))
 	handler.POST("", addShipment(shipmentService))
 	handler.GET(":id", getShipment(shipmentService))
@@ -39,6 +41,15 @@ func addShipment(shipmentService services.ShipmentService) gin.HandlerFunc {
 		var shipmentReq *services.ShipmentRequest
 
 		err := c.BindJSON(&shipmentReq)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "Invalid request",
+				"error":   err.Error(),
+			})
+			return
+		}
+
+		err = services.IsValidShipmentRequest(shipmentReq)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"message": "Invalid request",
