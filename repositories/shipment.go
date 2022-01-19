@@ -8,7 +8,7 @@ import (
 type ShipmentRepository interface {
 	GetAllShipments() ([]models.Shipment, error)
 	CreateShipment(shipment *models.Shipment) error
-	GetShipmentByID(ID uint) (*models.Shipment, error)
+	GetShipmentByID(shipmentID uint) (*models.Shipment, error)
 }
 
 type shipmentRepository struct {

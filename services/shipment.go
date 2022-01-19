@@ -19,14 +19,24 @@ type ShipmentRequest struct {
 
 type ShipmentService interface {
 	GetAllShipments() ([]models.Shipment, error)
-	CreateShipment(shipmentReq *ShipmentRequest) (uint, error)
-	GetShipmentByID(ID uint) (*models.Shipment, error)
+	//AddShipment(shipmentReq *ShipmentRequest) (uint, error)
+	//GetShipmentByID(ID uint) (*models.Shipment, error)
 }
 
 type shipmentService struct {
 	shipmentRepository repositories.ShipmentRepository
 }
 
-func InitShipmentRepository(shipmentRepo repositories.ShipmentRepository) ShipmentService {
+func InitShipmentService(shipmentRepo repositories.ShipmentRepository) ShipmentService {
 	return &shipmentService{shipmentRepository: shipmentRepo}
+}
+
+func (s *shipmentService) GetAllShipments() ([]models.Shipment, error) {
+	shipments, err := s.shipmentRepository.GetAllShipments()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return shipments, nil
 }
