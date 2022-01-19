@@ -11,7 +11,7 @@ func WeightClassRulesCoef(weight float64) uint {
 	} else if weight >= 26 && weight < 51 {
 		return 500
 	} else if weight >= 51 && weight <= 1000 {
-		return 500
+		return 2000
 	}
 
 	return 0
