@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Taras-Rm/shipment/models"
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -25,7 +26,11 @@ func ConnectDB() (*gorm.DB, error) {
 
 	db, err := gorm.Open(postgres.Open(DSN), &gorm.Config{})
 	if err != nil {
-		logrus.Error("can`t connect to db")
+		return nil, err
+	}
+
+	err = db.AutoMigrate(&models.Shipment{})
+	if err != nil {
 		return nil, err
 	}
 
