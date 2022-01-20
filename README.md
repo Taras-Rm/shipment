@@ -98,5 +98,4 @@
 + DB_PASSWORD=postgres
 + DB_HOST=localhost
 + DB_USER=postgres
-5. Install all necessary packages.
-6. Run the application (**go run main.go**).
+5. Run the application (**go run main.go**).
