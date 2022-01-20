@@ -9,7 +9,7 @@
  ### There are 3 endpoints in the application:
 --------
 - **GET** - localhost:8080/api/shipment (_get a list of all shipments that have been sent to the system_)
-#### Response:
+#### Response (example):
   ```sh
 {
     "message": "Shipments received!",
@@ -45,7 +45,7 @@
 ```
 --------
 - **GET** -  localhost:8080/api/shipment/:id (_get a single shipment by it's ID_)
-#### Response:
+#### Response (example):
   ```sh
 {
     "message": "Shipment is getted!",
@@ -66,7 +66,7 @@
 ```
 --------
 - **POST** -  localhost:8080/api/shipment (_add a new shipment to the system_)
-#### Request:
+#### Request (example):
 ```sh
 {
     "fromName": "Tom",
@@ -80,7 +80,7 @@
     "weight": 65
 }
 ```
-  #### Response:
+  #### Response (example):
 ```sh
 {
     "message": "Shipment is added!",
