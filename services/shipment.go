@@ -65,6 +65,7 @@ func (s *shipmentService) GetAllShipments() ([]ShipmentResponse, error) {
 func (s *shipmentService) AddShipment(shipmentReq *ShipmentRequest) (float64, error) {
 	// determine Region Rules (coefficient)
 	regionCoef := helpers.RegionRulesCoef(shipmentReq.FromCountryCode)
+
 	// determine Weight Class Rules (coefficient)
 	weightCoef := helpers.WeightClassRulesCoef(shipmentReq.Weight)
 
@@ -131,10 +132,13 @@ func IsValidShipmentRequest(shipmentReq *ShipmentRequest) error {
 		return errors.New("uncorrect name format")
 	}
 
-	codeFromErr := helpers.ValidateCountryCode(shipmentReq.FromCountryCode)
-	codeToErr := helpers.ValidateCountryCode(shipmentReq.ToCountryCode)
-	if codeFromErr != nil || codeToErr != nil {
-		return errors.New("uncorrect country code")
+	codeErr := helpers.ValidateCountryCode(shipmentReq.FromCountryCode)
+	if codeErr != nil {
+		return codeErr
+	}
+	codeErr = helpers.ValidateCountryCode(shipmentReq.ToCountryCode)
+	if codeErr != nil {
+		return codeErr
 	}
 
 	addressFromErr := helpers.ValidateAddress(shipmentReq.FromAddress)

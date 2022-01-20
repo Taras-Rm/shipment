@@ -3,6 +3,8 @@ package helpers
 import (
 	"errors"
 	"regexp"
+
+	"github.com/biter777/countries"
 )
 
 // validate email
@@ -33,6 +35,12 @@ func ValidateCountryCode(code string) error {
 
 	if !codeReg.MatchString(code) {
 		return errors.New("invalid country code")
+	}
+
+	// check if there is a country with such a code
+	country := countries.ByName(code).String()
+	if country == "Unknown" {
+		return errors.New("non-existent country code")
 	}
 
 	return nil

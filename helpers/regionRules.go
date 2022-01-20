@@ -1,10 +1,17 @@
 package helpers
 
+import (
+	"github.com/biter777/countries"
+)
+
 func RegionRulesCoef(countryCode string) float64 {
 	// Nordic region country codes
 	var nordicRegion = []string{"SE", "NO", "DK", "FI"}
-	// EU country codes
-	var euRegion = []string{"BE", "BG", "CZ", "DK", "DE", "EE", "IE", "EL", "ES", "FR", "HR", "IT", "CY", "LV", "LT", "LU", "HU", "MT", "NL", "AT", "PL", "PT", "RO", "SI", "SK", "FI", "SE"}
+
+	// country info by code
+	country := countries.ByName(countryCode)
+	// get country region
+	countryRegion := country.Region().String()
 
 	// check is country code of Nordic region
 	for i := range nordicRegion {
@@ -14,10 +21,8 @@ func RegionRulesCoef(countryCode string) float64 {
 	}
 
 	// check is country code of the EU
-	for i := range euRegion {
-		if countryCode == euRegion[i] {
-			return 1.5
-		}
+	if countryRegion == "Europe" {
+		return 1.5
 	}
 
 	// country code is outside the EU

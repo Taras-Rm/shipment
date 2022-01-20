@@ -3,6 +3,7 @@ module github.com/Taras-Rm/shipment
 go 1.17
 
 require (
+	github.com/biter777/countries v1.3.4 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/gin-gonic/gin v1.7.7 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
