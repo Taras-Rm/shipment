@@ -38,9 +38,9 @@ func ValidateCountryCode(code string) error {
 	return nil
 }
 
-// validate country code
+// validate address
 func ValidateAddress(address string) error {
-	var addressReg = regexp.MustCompile("^[a-zA-Z\\s]+\\s\\d+\\,\\s[a-zA-Z0-9]+\\s[0-9]+$")
+	var addressReg = regexp.MustCompile("^[a-zA-Z\\s]+\\s\\d+\\,\\s[a-zA-Z0-9\\s]+\\s[0-9]+$")
 
 	if len(address) > 100 || !addressReg.MatchString(address) {
 		return errors.New("invalid address")

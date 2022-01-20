@@ -24,6 +24,7 @@ func ConnectDB() (*gorm.DB, error) {
 		return nil, err
 	}
 
+	// Auto Migrate creating a table
 	err = db.AutoMigrate(&models.Shipment{})
 	if err != nil {
 		return nil, err

@@ -8,6 +8,7 @@ import (
 	"github.com/Taras-Rm/shipment/repositories"
 )
 
+// structure of shipment request
 type ShipmentRequest struct {
 	FromName        string  `json:"fromName" binding:"required"`
 	FromEmail       string  `json:"fromEmail" binding:"required"`
@@ -20,10 +21,25 @@ type ShipmentRequest struct {
 	Weight          float64 `json:"weight" binding:"required"`
 }
 
+// structure of shipment rsponse
+type ShipmentResponse struct {
+	ID              uint    `json:"id" binding:"required"`
+	FromName        string  `json:"fromName" binding:"required"`
+	FromEmail       string  `json:"fromEmail" binding:"required"`
+	FromAddress     string  `json:"fromAddress" binding:"required"`
+	FromCountryCode string  `json:"fromCountryCode" binding:"required"`
+	ToName          string  `json:"toName" binding:"required"`
+	ToEmail         string  `json:"toEmail" binding:"required"`
+	ToAddress       string  `json:"toAddress" binding:"required"`
+	ToCountryCode   string  `json:"toCountryCode" binding:"required"`
+	Weight          float64 `json:"weight" binding:"required"`
+	Price           float64 `json:"price" binding:"required"`
+}
+
 type ShipmentService interface {
 	GetAllShipments() ([]models.Shipment, error)
 	AddShipment(shipmentReq *ShipmentRequest) (float64, error)
-	GetShipmentByID(id uint) (*models.Shipment, error)
+	GetShipmentByID(id uint) (*ShipmentResponse, error)
 }
 
 type shipmentService struct {
@@ -75,14 +91,28 @@ func (s *shipmentService) AddShipment(shipmentReq *ShipmentRequest) (float64, er
 	return price, nil
 }
 
-func (s *shipmentService) GetShipmentByID(id uint) (*models.Shipment, error) {
+func (s *shipmentService) GetShipmentByID(id uint) (*ShipmentResponse, error) {
 	shipment, err := s.shipmentRepository.GetShipmentByID(id)
-
 	if err != nil {
 		return nil, err
 	}
 
-	return shipment, nil
+	// formation of shipment response
+	newShipment := &ShipmentResponse{
+		ID:              shipment.ID,
+		FromName:        shipment.FromName,
+		FromEmail:       shipment.FromEmail,
+		FromAddress:     shipment.FromAddress,
+		FromCountryCode: shipment.FromCountryCode,
+		ToName:          shipment.ToName,
+		ToEmail:         shipment.ToEmail,
+		ToAddress:       shipment.ToAddress,
+		ToCountryCode:   shipment.ToCountryCode,
+		Weight:          shipment.Weight,
+		Price:           shipment.Price,
+	}
+
+	return newShipment, nil
 }
 
 func IsValidShipmentRequest(shipmentReq *ShipmentRequest) error {
