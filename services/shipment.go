@@ -63,14 +63,14 @@ func (s *shipmentService) GetAllShipments() ([]ShipmentResponse, error) {
 }
 
 func (s *shipmentService) AddShipment(shipmentReq *ShipmentRequest) (float64, error) {
-	// determine Region Rules (coefficient)
-	regionCoef := helpers.RegionRulesCoef(shipmentReq.FromCountryCode)
+	// determine Region Rules
+	regionFactor := helpers.RegionRulesFactor(shipmentReq.FromCountryCode)
 
-	// determine Weight Class Rules (coefficient)
-	weightCoef := helpers.WeightClassRulesCoef(shipmentReq.Weight)
+	// determine Weight Class Rules
+	weightFactor := helpers.WeightClassRulesFactor(shipmentReq.Weight)
 
 	// calculate price
-	price := regionCoef * float64(weightCoef)
+	price := regionFactor * float64(weightFactor)
 
 	shipment := models.Shipment{
 		FromName:        shipmentReq.FromName,
@@ -119,19 +119,21 @@ func (s *shipmentService) GetShipmentByID(id uint) (*ShipmentResponse, error) {
 }
 
 func IsValidShipmentRequest(shipmentReq *ShipmentRequest) error {
-
+	// check email
 	fromErr := helpers.ValidateEmail(shipmentReq.FromEmail)
 	toErr := helpers.ValidateEmail(shipmentReq.ToEmail)
 	if fromErr != nil || toErr != nil {
 		return errors.New("uncorrect email format")
 	}
 
+	// check names
 	nameFromErr := helpers.ValidateName(shipmentReq.FromName)
 	nameToErr := helpers.ValidateName(shipmentReq.ToName)
 	if nameFromErr != nil || nameToErr != nil {
 		return errors.New("uncorrect name format")
 	}
 
+	// check country codes
 	codeErr := helpers.ValidateCountryCode(shipmentReq.FromCountryCode)
 	if codeErr != nil {
 		return codeErr
@@ -141,12 +143,14 @@ func IsValidShipmentRequest(shipmentReq *ShipmentRequest) error {
 		return codeErr
 	}
 
+	// check addresses
 	addressFromErr := helpers.ValidateAddress(shipmentReq.FromAddress)
 	addressToErr := helpers.ValidateAddress(shipmentReq.ToAddress)
 	if addressFromErr != nil || addressToErr != nil {
 		return errors.New("uncorrect address format")
 	}
 
+	// check weight
 	if shipmentReq.Weight <= 0 || shipmentReq.Weight > 1000 {
 		return errors.New("invalid weight")
 	}

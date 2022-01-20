@@ -1,7 +1,7 @@
 package helpers
 
 // determining the type of weight class
-func WeightClassRulesCoef(weight float64) uint {
+func WeightClassRulesFactor(weight float64) uint {
 
 	// small / medium / large / huge
 	if weight > 0 && weight < 11 {

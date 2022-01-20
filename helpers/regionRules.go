@@ -4,7 +4,8 @@ import (
 	"github.com/biter777/countries"
 )
 
-func RegionRulesCoef(countryCode string) float64 {
+// determining the type of country region
+func RegionRulesFactor(countryCode string) float64 {
 	// Nordic region country codes
 	var nordicRegion = []string{"SE", "NO", "DK", "FI"}
 
@@ -13,7 +14,7 @@ func RegionRulesCoef(countryCode string) float64 {
 	// get country region
 	countryRegion := country.Region().String()
 
-	// check is country code of Nordic region
+	// check is country code of the Nordic region
 	for i := range nordicRegion {
 		if countryCode == nordicRegion[i] {
 			return 1

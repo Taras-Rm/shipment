@@ -7,6 +7,7 @@
 - Get a single shipment by it's ID.
 
  ### There are 3 endpoints in the application:
+--------
 - **GET** - localhost:8080/api/shipment (_get a list of all shipments that have been sent to the system_)
 #### Response:
   ```sh
@@ -91,7 +92,7 @@
 
 1. Clone or download this repository (https://github.com/Taras-Rm/shipment).
 2. Install **Postgress** and **Go** on computer.
-3. Enter to the project folder.
+3. Enter into the project folder.
 4. Create **.env** file and add relevant data to this file (example):
 + SERVER_PORT=:8080
 + DB_NAME=postgres

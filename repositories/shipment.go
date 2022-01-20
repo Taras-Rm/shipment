@@ -34,7 +34,7 @@ func (r *shipmentRepository) CreateShipment(shipment *models.Shipment) error {
 	return res.Error
 }
 
-// get a single shipment by ID
+// get a single shipment by it's ID
 func (r *shipmentRepository) GetShipmentByID(shipmentID uint) (*models.Shipment, error) {
 	var shipment *models.Shipment
 	res := r.db.First(&shipment, shipmentID)
