@@ -24,16 +24,13 @@ func (r *shipmentRepository) GetAllShipments() ([]models.Shipment, error) {
 	var shipments []models.Shipment
 	res := r.db.Find(&shipments)
 
-	if res.Error != nil {
-		return nil, res.Error
-	}
-
-	return shipments, nil
+	return shipments, res.Error
 }
 
 // create a new shipment
 func (r *shipmentRepository) CreateShipment(shipment *models.Shipment) error {
 	res := r.db.Create(&shipment)
+
 	return res.Error
 }
 
@@ -41,5 +38,6 @@ func (r *shipmentRepository) CreateShipment(shipment *models.Shipment) error {
 func (r *shipmentRepository) GetShipmentByID(shipmentID uint) (*models.Shipment, error) {
 	var shipment *models.Shipment
 	res := r.db.First(&shipment, shipmentID)
+
 	return shipment, res.Error
 }

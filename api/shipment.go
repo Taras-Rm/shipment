@@ -14,12 +14,13 @@ func UseShipment(gr *gin.RouterGroup, shipmentService services.ShipmentService) 
 	// endpoints
 	handler.GET("", getAllShipments(shipmentService))
 	handler.POST("", addShipment(shipmentService))
-	handler.GET(":id", getShipment(shipmentService))
+	handler.GET(":id", getShipmentByID(shipmentService))
 }
 
 func getAllShipments(shipmentService services.ShipmentService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
+		// get all shipments
 		shipments, err := shipmentService.GetAllShipments()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -40,6 +41,7 @@ func addShipment(shipmentService services.ShipmentService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var shipmentReq *services.ShipmentRequest
 
+		// check shipment request
 		err := c.BindJSON(&shipmentReq)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -49,6 +51,7 @@ func addShipment(shipmentService services.ShipmentService) gin.HandlerFunc {
 			return
 		}
 
+		// validate shipment request
 		err = services.IsValidShipmentRequest(shipmentReq)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -58,6 +61,7 @@ func addShipment(shipmentService services.ShipmentService) gin.HandlerFunc {
 			return
 		}
 
+		// add new shipment to database
 		price, err := shipmentService.AddShipment(shipmentReq)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -68,17 +72,18 @@ func addShipment(shipmentService services.ShipmentService) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"message": "Shipment is added !",
+			"message": "Shipment is added!",
 			"price":   price,
 		})
 	}
 }
 
-func getShipment(shipmentService services.ShipmentService) gin.HandlerFunc {
+func getShipmentByID(shipmentService services.ShipmentService) gin.HandlerFunc {
 	return func(c *gin.Context) {
+
+		// get ID param
 		id := c.Param("id")
 		shipmentId, err := strconv.ParseUint(id, 10, 64)
-
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"message": "Invalid request",
@@ -87,6 +92,7 @@ func getShipment(shipmentService services.ShipmentService) gin.HandlerFunc {
 			return
 		}
 
+		// get shipment by ID
 		shipment, err := shipmentService.GetShipmentByID(uint(shipmentId))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -97,7 +103,7 @@ func getShipment(shipmentService services.ShipmentService) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"message":  "Shipment is getted !",
+			"message":  "Shipment is getted!",
 			"shipment": shipment,
 		})
 	}

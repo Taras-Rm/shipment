@@ -66,6 +66,7 @@ func (s *shipmentService) AddShipment(shipmentReq *ShipmentRequest) (float64, er
 		Price:           price,
 	}
 
+	// add the new shipment to the database
 	err := s.shipmentRepository.CreateShipment(&shipment)
 	if err != nil {
 		return 0, err
