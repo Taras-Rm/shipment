@@ -21,7 +21,7 @@ type ShipmentRequest struct {
 	Weight          float64 `json:"weight" binding:"required"`
 }
 
-// structure of shipment rsponse
+// structure of shipment response
 type ShipmentResponse struct {
 	ID              uint    `json:"id" binding:"required"`
 	FromName        string  `json:"fromName" binding:"required"`
@@ -37,7 +37,7 @@ type ShipmentResponse struct {
 }
 
 type ShipmentService interface {
-	GetAllShipments() ([]models.Shipment, error)
+	GetAllShipments() ([]ShipmentResponse, error)
 	AddShipment(shipmentReq *ShipmentRequest) (float64, error)
 	GetShipmentByID(id uint) (*ShipmentResponse, error)
 }
@@ -50,14 +50,16 @@ func InitShipmentService(shipmentRepo repositories.ShipmentRepository) ShipmentS
 	return &shipmentService{shipmentRepository: shipmentRepo}
 }
 
-func (s *shipmentService) GetAllShipments() ([]models.Shipment, error) {
+func (s *shipmentService) GetAllShipments() ([]ShipmentResponse, error) {
 	shipments, err := s.shipmentRepository.GetAllShipments()
-
 	if err != nil {
 		return nil, err
 	}
 
-	return shipments, nil
+	// formation of all shipments response
+	newShipments := prepareShipmentsToResponse(shipments)
+
+	return newShipments, nil
 }
 
 func (s *shipmentService) AddShipment(shipmentReq *ShipmentRequest) (float64, error) {
@@ -146,4 +148,28 @@ func IsValidShipmentRequest(shipmentReq *ShipmentRequest) error {
 	}
 
 	return nil
+}
+
+func prepareShipmentsToResponse(shipments []models.Shipment) []ShipmentResponse {
+	var newShipments []ShipmentResponse
+
+	for _, val := range shipments {
+		shipment := ShipmentResponse{
+			ID:              val.ID,
+			FromName:        val.FromName,
+			FromEmail:       val.FromEmail,
+			FromAddress:     val.FromAddress,
+			FromCountryCode: val.FromCountryCode,
+			ToName:          val.ToName,
+			ToEmail:         val.ToEmail,
+			ToAddress:       val.ToAddress,
+			ToCountryCode:   val.ToCountryCode,
+			Weight:          val.Weight,
+			Price:           val.Price,
+		}
+
+		newShipments = append(newShipments, shipment)
+	}
+
+	return newShipments
 }
