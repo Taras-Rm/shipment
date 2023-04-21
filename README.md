@@ -1,4 +1,6 @@
-# Shipment (Junior BE Test)
+# Shipment
+
+## Application is writen on Golang.
 
  #### The application is able to do 3 things:
 
