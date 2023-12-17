@@ -102,3 +102,4 @@
 + DB_HOST=localhost
 + DB_USER=postgres
 5. Run the application (**go run main.go**).
+6. Run tests (**go test -v ./...**)

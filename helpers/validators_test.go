@@ -79,3 +79,40 @@ func TestValidateName(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateCountryCode(t *testing.T) {
+	testCases := []struct{
+		name string
+		code string
+		err error
+	}{
+		{
+			name: "correct country code",
+			code: "UA",
+			err: nil,
+		},
+		{
+			name: "invalid country code (long word)",
+			code: "CODE",
+			err: ErrorInvalidCountryCode,
+		},
+		{
+			name: "invalid country code (lovercase)",
+			code: "ua",
+			err: ErrorInvalidCountryCode,
+		},
+		{
+			name: "not existing country code",
+			code: "UU",
+			err: ErrorNotExistingCountryCode,
+		},
+	}
+
+	for _, tC := range testCases {
+		t.Run(tC.name, func(t *testing.T) {
+			actual := ValidateCountryCode(tC.code)
+
+			require.Equal(t, tC.err, actual)
+		})
+	}
+}
