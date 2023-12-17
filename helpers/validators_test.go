@@ -9,8 +9,8 @@ import (
 func TestValidateEmail(t *testing.T) {
 	testCases := []struct{
 		name string
-			email string
-			err error
+		email string
+		err error
 	}{
 		{
 			name: "correct email",
@@ -42,6 +42,38 @@ func TestValidateEmail(t *testing.T) {
 	for _, tC := range testCases {
 		t.Run(tC.name, func(t *testing.T) {
 			actual := ValidateEmail(tC.email)
+
+			require.Equal(t, tC.err, actual)
+		})
+	}
+}
+
+func TestValidateName(t *testing.T) {
+	testCases := []struct{
+		name string
+		inpName string
+		err error
+	}{
+		{
+			name: "correct name",
+			inpName: "testName",
+			err: nil,
+		},
+		{
+			name: "invalid name (longer 30 chars)",
+			inpName: "testNametestNametestNametestNametestNametestName",
+			err: ErrorInvalidName,
+		},
+		{
+			name: "invalid email (contain digits)",
+			inpName: "test9nam8e",
+			err: ErrorInvalidName,
+		},
+	}
+
+	for _, tC := range testCases {
+		t.Run(tC.name, func(t *testing.T) {
+			actual := ValidateName(tC.inpName)
 
 			require.Equal(t, tC.err, actual)
 		})
