@@ -116,3 +116,35 @@ func TestValidateCountryCode(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateAddress(t *testing.T) {
+	testCases := []struct{
+		name string
+		address string
+		err error
+	}{
+		{
+			name: "correct address text",
+			address: "Baker street, 5",
+			err: nil,
+		},
+		{
+			name: "correct empty address text",
+			address: "",
+			err: nil,
+		},
+		{
+			name: "invalid address (too long)",
+			address: "Bakerdsdosdccsdcdscscjkdsjckjsdcjskdcjsjdcsd streetdsscsjsdsdsdsdsdklcjdkscjksdjcsdsdsddsddcksdjck, 53",
+			err: ErrorInvalidAddress,
+		},
+	}
+
+	for _, tC := range testCases {
+		t.Run(tC.name, func(t *testing.T) {
+			actual := ValidateAddress(tC.address)
+
+			require.Equal(t, tC.err, actual)
+		})
+	}
+}
