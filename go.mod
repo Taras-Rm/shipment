@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/biter777/countries v1.3.4
 	github.com/gin-gonic/gin v1.7.7
+	github.com/golang/mock v1.6.0
 	github.com/joho/godotenv v1.4.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0

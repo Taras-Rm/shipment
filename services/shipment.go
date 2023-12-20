@@ -36,6 +36,7 @@ type ShipmentResponse struct {
 	Price           float64 `json:"price" binding:"required"`
 }
 
+//go:generate mockgen -source=shipment.go -destination=mocks/shipment.go
 type ShipmentService interface {
 	GetAllShipments() ([]ShipmentResponse, error)
 	AddShipment(shipmentReq *ShipmentRequest) (float64, error)
