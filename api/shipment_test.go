@@ -59,8 +59,8 @@ func TestHandler_getAllShipments(t *testing.T) {
 	testCases := []struct{
 		name string
 		mockBehavior mockBehaviour
+		outputShipments []services.ShipmentResponse
 		expectedStatusCode int
-		expectedShipments []services.ShipmentResponse
 		expectedResponseBody responseBody
 	}{
 		{
@@ -69,7 +69,7 @@ func TestHandler_getAllShipments(t *testing.T) {
 				s.EXPECT().GetAllShipments().Return(shipments, nil)
 			},
 			expectedStatusCode: http.StatusOK,
-			expectedShipments: []services.ShipmentResponse{shipment1, shipment2},
+			outputShipments: []services.ShipmentResponse{shipment1, shipment2},
 			expectedResponseBody: responseBody{
 				Message: "Shipments received!",
 				Shipments: []services.ShipmentResponse{shipment1, shipment2},
@@ -81,7 +81,7 @@ func TestHandler_getAllShipments(t *testing.T) {
 				s.EXPECT().GetAllShipments().Return(shipments, errors.New("some internal error"))
 			},
 			expectedStatusCode: http.StatusInternalServerError,
-			expectedShipments: nil,
+			outputShipments: nil,
 			expectedResponseBody: responseBody{
 				Message: "Server error",
 				Error: strToPointerStr("some internal error"),
@@ -89,6 +89,8 @@ func TestHandler_getAllShipments(t *testing.T) {
 		},
 	}
 
+	gin.SetMode(gin.TestMode)
+	
 	for _, tC := range testCases {
 		t.Run(tC.name, func(t *testing.T) {
 			// Initialize dependencies
@@ -97,7 +99,7 @@ func TestHandler_getAllShipments(t *testing.T) {
 
 			serv := mock_services.NewMockShipmentService(c)
 
-			tC.mockBehavior(serv, tC.expectedShipments)
+			tC.mockBehavior(serv, tC.outputShipments)
 
 			// Initialize endpoint
 			r := gin.New()
