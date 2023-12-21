@@ -54,7 +54,7 @@ func ShipmentModelFromDomain(shipment models.Shipment) ShipmentModel {
 type ShipmentRepository interface {
 	GetAllShipments() ([]models.Shipment, error)
 	CreateShipment(shipment models.Shipment) error
-	GetShipmentByID(shipmentID uint) (*models.Shipment, error)
+	GetShipmentByID(shipmentID uint) (models.Shipment, error)
 }
 
 type shipmentRepository struct {
@@ -83,8 +83,9 @@ func (r *shipmentRepository) CreateShipment(shipment models.Shipment) error {
 }
 
 // get a single shipment by it's ID
-func (r *shipmentRepository) GetShipmentByID(shipmentID uint) (*models.Shipment, error) {
-	var shipment *models.Shipment
+func (r *shipmentRepository) GetShipmentByID(shipmentID uint) (models.Shipment, error) {
+	var shipment models.Shipment
+
 	res := r.db.First(&shipment, shipmentID)
 
 	return shipment, res.Error

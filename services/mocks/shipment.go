@@ -66,10 +66,10 @@ func (mr *MockShipmentServiceMockRecorder) GetAllShipments() *gomock.Call {
 }
 
 // GetShipmentByID mocks base method.
-func (m *MockShipmentService) GetShipmentByID(id uint) (*models.Shipment, error) {
+func (m *MockShipmentService) GetShipmentByID(id uint) (models.Shipment, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetShipmentByID", id)
-	ret0, _ := ret[0].(*models.Shipment)
+	ret0, _ := ret[0].(models.Shipment)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

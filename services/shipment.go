@@ -60,26 +60,11 @@ func (i AddShipmentInput) Validate() error {
 	return nil
 }
 
-// structure of shipment response
-type ShipmentResponse struct {
-	ID              uint    `json:"id" binding:"required"`
-	FromName        string  `json:"fromName" binding:"required"`
-	FromEmail       string  `json:"fromEmail" binding:"required"`
-	FromAddress     string  `json:"fromAddress" binding:"required"`
-	FromCountryCode string  `json:"fromCountryCode" binding:"required"`
-	ToName          string  `json:"toName" binding:"required"`
-	ToEmail         string  `json:"toEmail" binding:"required"`
-	ToAddress       string  `json:"toAddress" binding:"required"`
-	ToCountryCode   string  `json:"toCountryCode" binding:"required"`
-	Weight          float64 `json:"weight" binding:"required"`
-	Price           float64 `json:"price" binding:"required"`
-}
-
 //go:generate mockgen -source=shipment.go -destination=mocks/shipment.go
 type ShipmentService interface {
 	GetAllShipments() ([]models.Shipment, error)
 	AddShipment(inp AddShipmentInput) (float64, error)
-	GetShipmentByID(id uint) (*models.Shipment, error)
+	GetShipmentByID(id uint) (models.Shipment, error)
 }
 
 type shipmentService struct {
@@ -131,10 +116,10 @@ func (s *shipmentService) AddShipment(inp AddShipmentInput) (float64, error) {
 	return price, nil
 }
 
-func (s *shipmentService) GetShipmentByID(id uint) (*models.Shipment, error) {
+func (s *shipmentService) GetShipmentByID(id uint) (models.Shipment, error) {
 	shipment, err := s.shipmentRepository.GetShipmentByID(id)
 	if err != nil {
-		return nil, err
+		return models.Shipment{}, err
 	}
 
 	return shipment, nil

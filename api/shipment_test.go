@@ -2,14 +2,14 @@ package api
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
+	"os"
 	"testing"
 
-	"github.com/Taras-Rm/shipment/helpers"
+	"github.com/Taras-Rm/shipment/models"
 	"github.com/Taras-Rm/shipment/services"
 	mock_services "github.com/Taras-Rm/shipment/services/mocks"
 	"github.com/gin-gonic/gin"
@@ -18,108 +18,299 @@ import (
 )
 
 func TestHandler_getShipmentById(t *testing.T) {
-	type mockBehaviour func(s *mock_services.MockShipmentService, shipment *services.ShipmentResponse, shipmentId uint)
-
-	type responseBody struct {
-		Message  string                     `json:"message"`
-		Shipment *services.ShipmentResponse `json:"shipment"`
-		Error    *string                    `json:"error"`
-	}
-
-	shipment := services.ShipmentResponse{
-		ID:              5,
-		FromName:        "Taras",
-		FromEmail:       "testEmailFrom@g.c",
-		FromAddress:     "Kyiv",
-		FromCountryCode: "UA",
-		ToName:          "Vitaliy",
-		ToEmail:         "testEmailTo@g.c",
-		ToAddress:       "Warshaw",
-		ToCountryCode:   "PL",
-		Weight:          5.5,
-	}
+	type mockBehaviur func(r *mock_services.MockShipmentService, id uint, shipment models.Shipment)
 
 	testCases := []struct {
 		name                 string
-		mockBehavior         mockBehaviour
-		requestIdParam       uint
-		outputShipment       *services.ShipmentResponse
+		inputId              uint
+		outputShipment       models.Shipment
+		mockBehaviur         mockBehaviur
 		expectedStatusCode   int
-		expectedResponseBody responseBody
+		expectedResponseBody string
 	}{
 		{
-			name: "OK",
-			mockBehavior: func(s *mock_services.MockShipmentService, shipment *services.ShipmentResponse, shipmentId uint) {
-				s.EXPECT().GetShipmentByID(gomock.Eq(shipmentId)).Return(shipment, nil)
+			name:    "OK",
+			inputId: 2,
+			outputShipment: models.Shipment{
+				Id:              2,
+				FromName:        "Mark",
+				FromEmail:       "testFrom@g.c",
+				FromAddress:     "Lviv, 45",
+				FromCountryCode: "UA",
+				ToName:          "Iryna",
+				ToEmail:         "testTo@g.c",
+				ToAddress:       "Toronto, 34",
+				ToCountryCode:   "CA",
+				Weight:          234.4,
+				Price:           99.99,
 			},
-			requestIdParam:     5,
-			outputShipment:     &shipment,
-			expectedStatusCode: http.StatusOK,
-			expectedResponseBody: responseBody{
-				Message:  "Shipment is getted!",
-				Shipment: &shipment,
+			mockBehaviur: func(r *mock_services.MockShipmentService, id uint, shipment models.Shipment) {
+				r.EXPECT().GetShipmentByID(gomock.Eq(id)).Return(shipment, nil)
 			},
+			expectedStatusCode:   http.StatusOK,
+			expectedResponseBody: `{"shipment":{"Id":2,"FromName":"Mark","FromEmail":"testFrom@g.c","FromAddress":"Lviv, 45","FromCountryCode":"UA","ToName":"Iryna","ToEmail":"testTo@g.c","ToAddress":"Toronto, 34","ToCountryCode":"CA","Weight":234.4,"Price":99.99}}`,
 		},
 		{
-			name: "can not found shipment with id",
-			mockBehavior: func(s *mock_services.MockShipmentService, shipment *services.ShipmentResponse, shipmentId uint) {
-				s.EXPECT().GetShipmentByID(gomock.Eq(shipmentId)).Return(shipment, errors.New("can not fount shipment"))
+			name:           "some internal error",
+			inputId:        2,
+			outputShipment: models.Shipment{},
+			mockBehaviur: func(r *mock_services.MockShipmentService, id uint, shipment models.Shipment) {
+				r.EXPECT().GetShipmentByID(gomock.Eq(id)).Return(shipment, errors.New("some internal error"))
 			},
-			requestIdParam:     12,
-			outputShipment:     nil,
-			expectedStatusCode: http.StatusInternalServerError,
-			expectedResponseBody: responseBody{
-				Message: "Server error",
-				Error:   helpers.StrToPointerStr("can not fount shipment"),
-			},
-		},
-		{
-			name: "invalid shipment id",
-			mockBehavior: func(s *mock_services.MockShipmentService, shipment *services.ShipmentResponse, shipmentId uint) {
-				s.EXPECT().GetShipmentByID(gomock.Eq(shipmentId)).Return(shipment, errors.New("can not fount shipment"))
-			},
-			requestIdParam:     12,
-			outputShipment:     nil,
-			expectedStatusCode: http.StatusInternalServerError,
-			expectedResponseBody: responseBody{
-				Message: "Server error",
-				Error:   helpers.StrToPointerStr("can not fount shipment"),
-			},
+			expectedStatusCode:   http.StatusInternalServerError,
+			expectedResponseBody: `{"error":"some internal error"}`,
 		},
 	}
 
 	for _, tC := range testCases {
 		t.Run(tC.name, func(t *testing.T) {
-			// Initialize dependencies
+			// Init deps
 			c := gomock.NewController(t)
 			defer c.Finish()
 
-			serv := mock_services.NewMockShipmentService(c)
+			shipment := mock_services.NewMockShipmentService(c)
+			tC.mockBehaviur(shipment, tC.inputId, tC.outputShipment)
 
-			tC.mockBehavior(serv, tC.outputShipment, tC.requestIdParam)
-
-			// Initialize endpoint
-			r := gin.New()
-			r.GET("/:id", getShipmentByID(serv))
+			// Init endpoint
+			api := gin.New()
+			api.GET("/:id", getShipmentByID(shipment))
 
 			// Create request
 			w := httptest.NewRecorder()
-			req := httptest.NewRequest("GET", "/"+strconv.Itoa(int(tC.requestIdParam)), bytes.NewBufferString(""))
+			req := httptest.NewRequest("GET", fmt.Sprintf("/%d", tC.inputId), bytes.NewBufferString(""))
 
 			// Make request
-			r.ServeHTTP(w, req)
+			api.ServeHTTP(w, req)
 
-			// Require status code
+			// Require
 			require.Equal(t, tC.expectedStatusCode, w.Code)
+			require.Equal(t, tC.expectedResponseBody, w.Body.String())
+		})
+	}
+}
 
-			// Require response body
-			var actual responseBody
-			err := json.Unmarshal(w.Body.Bytes(), &actual)
-			if err != nil {
-				t.Fatal(err)
-			}
+func TestHandler_getAllShipments(t *testing.T) {
+	type mockBehaviur func(r *mock_services.MockShipmentService, shipments []models.Shipment)
 
-			require.Equal(t, tC.expectedResponseBody, actual)
+	testCases := []struct {
+		name                 string
+		outputShipments      []models.Shipment
+		mockBehaviur         mockBehaviur
+		expectedStatusCode   int
+		expectedResponseBody string
+	}{
+		{
+			name: "OK",
+			outputShipments: []models.Shipment{
+				{
+					Id:              2,
+					FromName:        "Mark",
+					FromEmail:       "testFrom@g.c",
+					FromAddress:     "Lviv, 45",
+					FromCountryCode: "UA",
+					ToName:          "Iryna",
+					ToEmail:         "testTo@g.c",
+					ToAddress:       "Toronto, 34",
+					ToCountryCode:   "CA",
+					Weight:          234.4,
+					Price:           99.99,
+				},
+				{
+					Id:              3,
+					FromName:        "Tom",
+					FromEmail:       "testFrom@g.c",
+					FromAddress:     "Lutsk, 34",
+					FromCountryCode: "UA",
+					ToName:          "Viktor",
+					ToEmail:         "testTo@g.c",
+					ToAddress:       "London, 32",
+					ToCountryCode:   "UK",
+					Weight:          5,
+					Price:           234.78,
+				},
+			},
+			mockBehaviur: func(r *mock_services.MockShipmentService, shipments []models.Shipment) {
+				r.EXPECT().GetAllShipments().Return(shipments, nil)
+			},
+			expectedStatusCode:   http.StatusOK,
+			expectedResponseBody: `{"shipments":[{"Id":2,"FromName":"Mark","FromEmail":"testFrom@g.c","FromAddress":"Lviv, 45","FromCountryCode":"UA","ToName":"Iryna","ToEmail":"testTo@g.c","ToAddress":"Toronto, 34","ToCountryCode":"CA","Weight":234.4,"Price":99.99},{"Id":3,"FromName":"Tom","FromEmail":"testFrom@g.c","FromAddress":"Lutsk, 34","FromCountryCode":"UA","ToName":"Viktor","ToEmail":"testTo@g.c","ToAddress":"London, 32","ToCountryCode":"UK","Weight":5,"Price":234.78}]}`,
+		},
+		{
+			name:            "without shipments",
+			outputShipments: []models.Shipment{},
+			mockBehaviur: func(r *mock_services.MockShipmentService, shipments []models.Shipment) {
+				r.EXPECT().GetAllShipments().Return(shipments, nil)
+			},
+			expectedStatusCode:   http.StatusOK,
+			expectedResponseBody: `{"shipments":[]}`,
+		},
+		{
+			name: "some internal error",
+			mockBehaviur: func(r *mock_services.MockShipmentService, shipments []models.Shipment) {
+				r.EXPECT().GetAllShipments().Return(shipments, errors.New("some internal error"))
+			},
+			expectedStatusCode:   http.StatusInternalServerError,
+			expectedResponseBody: `{"error":"some internal error"}`,
+		},
+	}
+
+	for _, tC := range testCases {
+		t.Run(tC.name, func(t *testing.T) {
+			// Init deps
+			c := gomock.NewController(t)
+			defer c.Finish()
+
+			shipment := mock_services.NewMockShipmentService(c)
+			tC.mockBehaviur(shipment, tC.outputShipments)
+
+			// Init endpoint
+			api := gin.New()
+			api.GET("", getAllShipments(shipment))
+
+			// Create request
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", "/", bytes.NewBufferString(""))
+
+			// Make request
+			api.ServeHTTP(w, req)
+
+			// Require
+			require.Equal(t, tC.expectedStatusCode, w.Code)
+			require.Equal(t, tC.expectedResponseBody, w.Body.String())
+		})
+	}
+}
+
+func TestHandler_addShipment(t *testing.T) {
+	type mockBehaviur func(r *mock_services.MockShipmentService, shipment services.AddShipmentInput)
+
+	testCases := []struct {
+		name                 string
+		fixturePath          string
+		inputShipment        services.AddShipmentInput
+		mockBehaviur         mockBehaviur
+		expectedStatusCode   int
+		expectedResponseBody string
+	}{
+		{
+			name:        "OK",
+			fixturePath: "./fixtures/shipments/add.ok.json",
+			inputShipment: services.AddShipmentInput{
+				FromName:        "Mark",
+				FromEmail:       "testFrom@g.c",
+				FromAddress:     "Lviv, 45",
+				FromCountryCode: "UA",
+				ToName:          "Iryna",
+				ToEmail:         "testTo@g.c",
+				ToAddress:       "Toronto, 34",
+				ToCountryCode:   "CA",
+				Weight:          234.4,
+			},
+			mockBehaviur: func(r *mock_services.MockShipmentService, shipment services.AddShipmentInput) {
+				r.EXPECT().AddShipment(gomock.Eq(shipment)).Return(1000.5, nil)
+			},
+			expectedStatusCode:   http.StatusCreated,
+			expectedResponseBody: `{"price":1000.5}`,
+		},
+		{
+			name:                 "Missing fromName",
+			fixturePath:          "./fixtures/shipments/add.no_fromName.json",
+			mockBehaviur:         func(r *mock_services.MockShipmentService, shipment services.AddShipmentInput) {},
+			expectedStatusCode:   http.StatusBadRequest,
+			expectedResponseBody: `{"error":"invalid input body"}`,
+		},
+		{
+			name:                 "Missing fromEmail",
+			fixturePath:          "./fixtures/shipments/add.no_fromEmail.json",
+			mockBehaviur:         func(r *mock_services.MockShipmentService, shipment services.AddShipmentInput) {},
+			expectedStatusCode:   http.StatusBadRequest,
+			expectedResponseBody: `{"error":"invalid input body"}`,
+		},
+		{
+			name:                 "Missing fromAddress",
+			fixturePath:          "./fixtures/shipments/add.no_fromAddress.json",
+			mockBehaviur:         func(r *mock_services.MockShipmentService, shipment services.AddShipmentInput) {},
+			expectedStatusCode:   http.StatusBadRequest,
+			expectedResponseBody: `{"error":"invalid input body"}`,
+		},
+		{
+			name:                 "Missing fromCountryCode",
+			fixturePath:          "./fixtures/shipments/add.no_fromCountryCode.json",
+			mockBehaviur:         func(r *mock_services.MockShipmentService, shipment services.AddShipmentInput) {},
+			expectedStatusCode:   http.StatusBadRequest,
+			expectedResponseBody: `{"error":"invalid input body"}`,
+		},
+		{
+			name:                 "Missing toName",
+			fixturePath:          "./fixtures/shipments/add.no_toName.json",
+			mockBehaviur:         func(r *mock_services.MockShipmentService, shipment services.AddShipmentInput) {},
+			expectedStatusCode:   http.StatusBadRequest,
+			expectedResponseBody: `{"error":"invalid input body"}`,
+		},
+		{
+			name:                 "Missing toEmail",
+			fixturePath:          "./fixtures/shipments/add.no_toEmail.json",
+			mockBehaviur:         func(r *mock_services.MockShipmentService, shipment services.AddShipmentInput) {},
+			expectedStatusCode:   http.StatusBadRequest,
+			expectedResponseBody: `{"error":"invalid input body"}`,
+		},
+		{
+			name:                 "Missing toAddress",
+			fixturePath:          "./fixtures/shipments/add.no_toAddress.json",
+			mockBehaviur:         func(r *mock_services.MockShipmentService, shipment services.AddShipmentInput) {},
+			expectedStatusCode:   http.StatusBadRequest,
+			expectedResponseBody: `{"error":"invalid input body"}`,
+		},
+		{
+			name:                 "Missing toCountryCode",
+			fixturePath:          "./fixtures/shipments/add.no_toCountryCode.json",
+			mockBehaviur:         func(r *mock_services.MockShipmentService, shipment services.AddShipmentInput) {},
+			expectedStatusCode:   http.StatusBadRequest,
+			expectedResponseBody: `{"error":"invalid input body"}`,
+		},
+		{
+			name:                 "Missing weight",
+			fixturePath:          "./fixtures/shipments/add.no_weight.json",
+			mockBehaviur:         func(r *mock_services.MockShipmentService, shipment services.AddShipmentInput) {},
+			expectedStatusCode:   http.StatusBadRequest,
+			expectedResponseBody: `{"error":"invalid input body"}`,
+		},
+		{
+			name:                 "Invalid weight",
+			fixturePath:          "./fixtures/shipments/add.invalid_weight.json",
+			mockBehaviur:         func(r *mock_services.MockShipmentService, shipment services.AddShipmentInput) {},
+			expectedStatusCode:   http.StatusBadRequest,
+			expectedResponseBody: `{"error":"invalid input body"}`,
+		},
+	}
+
+	for _, tC := range testCases {
+		t.Run(tC.name, func(t *testing.T) {
+			// Init deps
+			c := gomock.NewController(t)
+			defer c.Finish()
+
+			shipment := mock_services.NewMockShipmentService(c)
+			tC.mockBehaviur(shipment, tC.inputShipment)
+
+			// Init endpoint
+			api := gin.New()
+			api.POST("", addShipment(shipment))
+
+			// Input body preparing
+			fixturedData, err := os.ReadFile(tC.fixturePath)
+			require.NoError(t, err)
+
+			// Create request
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/", bytes.NewBuffer(fixturedData))
+
+			// Make request
+			api.ServeHTTP(w, req)
+
+			// Require
+			require.Equal(t, tC.expectedStatusCode, w.Code)
+			require.Equal(t, tC.expectedResponseBody, w.Body.String())
 		})
 	}
 }

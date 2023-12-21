@@ -62,30 +62,22 @@ func addShipment(shipmentService services.ShipmentService) gin.HandlerFunc {
 
 func getShipmentByID(shipmentService services.ShipmentService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		// get ID param
 		id := c.Param("id")
 		shipmentId, err := strconv.ParseUint(id, 10, 64)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"message": "Invalid request",
-				"error":   err.Error(),
-			})
+			newErrorResponse(c, http.StatusBadRequest, err)
 			return
 		}
 
 		// get shipment by ID
 		shipment, err := shipmentService.GetShipmentByID(uint(shipmentId))
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": "Server error",
-				"error":   err.Error(),
-			})
+			newErrorResponse(c, http.StatusInternalServerError, err)
 			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"message":  "Shipment is getted!",
 			"shipment": shipment,
 		})
 	}
