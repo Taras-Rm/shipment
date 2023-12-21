@@ -7,6 +7,7 @@ package mock_services
 import (
 	reflect "reflect"
 
+	models "github.com/Taras-Rm/shipment/models"
 	services "github.com/Taras-Rm/shipment/services"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -50,10 +51,10 @@ func (mr *MockShipmentServiceMockRecorder) AddShipment(inp interface{}) *gomock.
 }
 
 // GetAllShipments mocks base method.
-func (m *MockShipmentService) GetAllShipments() ([]services.ShipmentResponse, error) {
+func (m *MockShipmentService) GetAllShipments() ([]models.Shipment, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllShipments")
-	ret0, _ := ret[0].([]services.ShipmentResponse)
+	ret0, _ := ret[0].([]models.Shipment)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -65,10 +66,10 @@ func (mr *MockShipmentServiceMockRecorder) GetAllShipments() *gomock.Call {
 }
 
 // GetShipmentByID mocks base method.
-func (m *MockShipmentService) GetShipmentByID(id uint) (*services.ShipmentResponse, error) {
+func (m *MockShipmentService) GetShipmentByID(id uint) (*models.Shipment, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetShipmentByID", id)
-	ret0, _ := ret[0].(*services.ShipmentResponse)
+	ret0, _ := ret[0].(*models.Shipment)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

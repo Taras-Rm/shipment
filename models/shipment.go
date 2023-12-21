@@ -1,10 +1,7 @@
 package models
 
-import "gorm.io/gorm"
-
-// shipment model
 type Shipment struct {
-	gorm.Model
+	Id              uint
 	FromName        string
 	FromEmail       string
 	FromAddress     string

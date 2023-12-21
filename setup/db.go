@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Taras-Rm/shipment/config"
-	"github.com/Taras-Rm/shipment/models"
+	"github.com/Taras-Rm/shipment/repositories"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -25,7 +25,7 @@ func ConnectDB() (*gorm.DB, error) {
 	}
 
 	// Auto Migrate creating a table
-	err = db.AutoMigrate(&models.Shipment{})
+	err = db.AutoMigrate(&repositories.ShipmentModel{})
 	if err != nil {
 		return nil, err
 	}

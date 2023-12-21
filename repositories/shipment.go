@@ -5,9 +5,55 @@ import (
 	"gorm.io/gorm"
 )
 
+// shipment model
+type ShipmentModel struct {
+	gorm.Model
+	FromName        string
+	FromEmail       string
+	FromAddress     string
+	FromCountryCode string
+	ToName          string
+	ToEmail         string
+	ToAddress       string
+	ToCountryCode   string
+	Weight          float64
+	Price           float64
+}
+
+func ShipmentModelToDomain(shipment ShipmentModel) models.Shipment {
+	return models.Shipment{
+		Id:              shipment.ID,
+		FromName:        shipment.FromName,
+		FromEmail:       shipment.FromEmail,
+		FromAddress:     shipment.FromAddress,
+		FromCountryCode: shipment.FromCountryCode,
+		ToName:          shipment.ToName,
+		ToEmail:         shipment.ToEmail,
+		ToAddress:       shipment.ToAddress,
+		ToCountryCode:   shipment.ToAddress,
+		Weight:          shipment.Weight,
+		Price:           shipment.Price,
+	}
+}
+
+func ShipmentModelFromDomain(shipment models.Shipment) ShipmentModel {
+	return ShipmentModel{
+		FromName:        shipment.FromName,
+		FromEmail:       shipment.FromEmail,
+		FromAddress:     shipment.FromAddress,
+		FromCountryCode: shipment.FromCountryCode,
+		ToName:          shipment.ToName,
+		ToEmail:         shipment.ToEmail,
+		ToAddress:       shipment.ToAddress,
+		ToCountryCode:   shipment.ToAddress,
+		Weight:          shipment.Weight,
+		Price:           shipment.Price,
+	}
+}
+
 type ShipmentRepository interface {
 	GetAllShipments() ([]models.Shipment, error)
-	CreateShipment(shipment *models.Shipment) error
+	CreateShipment(shipment models.Shipment) error
 	GetShipmentByID(shipmentID uint) (*models.Shipment, error)
 }
 
@@ -28,8 +74,10 @@ func (r *shipmentRepository) GetAllShipments() ([]models.Shipment, error) {
 }
 
 // create a new shipment
-func (r *shipmentRepository) CreateShipment(shipment *models.Shipment) error {
-	res := r.db.Create(&shipment)
+func (r *shipmentRepository) CreateShipment(shipment models.Shipment) error {
+	model := ShipmentModelFromDomain(shipment)
+
+	res := r.db.Create(&model)
 
 	return res.Error
 }
