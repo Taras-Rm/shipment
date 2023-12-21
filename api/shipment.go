@@ -20,19 +20,14 @@ func UseShipment(gr *gin.RouterGroup, shipmentService services.ShipmentService) 
 
 func getAllShipments(shipmentService services.ShipmentService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		// get all shipments
 		shipments, err := shipmentService.GetAllShipments()
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": "Server error",
-				"error":   err.Error(),
-			})
+			newErrorResponse(c, http.StatusInternalServerError, err)
 			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"message":   "Shipments received!",
 			"shipments": shipments,
 		})
 	}

@@ -2,17 +2,111 @@ package api
 
 import (
 	"bytes"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 
+	"github.com/Taras-Rm/shipment/models"
 	"github.com/Taras-Rm/shipment/services"
 	mock_services "github.com/Taras-Rm/shipment/services/mocks"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
+
+func TestHandler_getAllShipments(t *testing.T) {
+	type mockBehaviur func(r *mock_services.MockShipmentService, shipments []models.Shipment)
+
+	testCases := []struct {
+		name                 string
+		outputShipments      []models.Shipment
+		mockBehaviur         mockBehaviur
+		expectedStatusCode   int
+		expectedResponseBody string
+	}{
+		{
+			name: "OK",
+			outputShipments: []models.Shipment{
+				{
+					Id:              2,
+					FromName:        "Mark",
+					FromEmail:       "testFrom@g.c",
+					FromAddress:     "Lviv, 45",
+					FromCountryCode: "UA",
+					ToName:          "Iryna",
+					ToEmail:         "testTo@g.c",
+					ToAddress:       "Toronto, 34",
+					ToCountryCode:   "CA",
+					Weight:          234.4,
+					Price:           99.99,
+				},
+				{
+					Id:              3,
+					FromName:        "Tom",
+					FromEmail:       "testFrom@g.c",
+					FromAddress:     "Lutsk, 34",
+					FromCountryCode: "UA",
+					ToName:          "Viktor",
+					ToEmail:         "testTo@g.c",
+					ToAddress:       "London, 32",
+					ToCountryCode:   "UK",
+					Weight:          5,
+					Price:           234.78,
+				},
+			},
+			mockBehaviur: func(r *mock_services.MockShipmentService, shipments []models.Shipment) {
+				r.EXPECT().GetAllShipments().Return(shipments, nil)
+			},
+			expectedStatusCode:   http.StatusOK,
+			expectedResponseBody: `{"shipments":[{"Id":2,"FromName":"Mark","FromEmail":"testFrom@g.c","FromAddress":"Lviv, 45","FromCountryCode":"UA","ToName":"Iryna","ToEmail":"testTo@g.c","ToAddress":"Toronto, 34","ToCountryCode":"CA","Weight":234.4,"Price":99.99},{"Id":3,"FromName":"Tom","FromEmail":"testFrom@g.c","FromAddress":"Lutsk, 34","FromCountryCode":"UA","ToName":"Viktor","ToEmail":"testTo@g.c","ToAddress":"London, 32","ToCountryCode":"UK","Weight":5,"Price":234.78}]}`,
+		},
+		{
+			name:            "without shipments",
+			outputShipments: []models.Shipment{},
+			mockBehaviur: func(r *mock_services.MockShipmentService, shipments []models.Shipment) {
+				r.EXPECT().GetAllShipments().Return(shipments, nil)
+			},
+			expectedStatusCode:   http.StatusOK,
+			expectedResponseBody: `{"shipments":[]}`,
+		},
+		{
+			name: "some internal error",
+			mockBehaviur: func(r *mock_services.MockShipmentService, shipments []models.Shipment) {
+				r.EXPECT().GetAllShipments().Return(shipments, errors.New("some internal error"))
+			},
+			expectedStatusCode:   http.StatusInternalServerError,
+			expectedResponseBody: `{"error":"some internal error"}`,
+		},
+	}
+
+	for _, tC := range testCases {
+		t.Run(tC.name, func(t *testing.T) {
+			// Init deps
+			c := gomock.NewController(t)
+			defer c.Finish()
+
+			shipment := mock_services.NewMockShipmentService(c)
+			tC.mockBehaviur(shipment, tC.outputShipments)
+
+			// Init endpoint
+			api := gin.New()
+			api.GET("", getAllShipments(shipment))
+
+			// Create request
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", "/", bytes.NewBufferString(""))
+
+			// Make request
+			api.ServeHTTP(w, req)
+
+			// Require
+			require.Equal(t, tC.expectedStatusCode, w.Code)
+			require.Equal(t, tC.expectedResponseBody, w.Body.String())
+		})
+	}
+}
 
 func TestHandler_addShipment(t *testing.T) {
 	type mockBehaviur func(r *mock_services.MockShipmentService, shipment services.AddShipmentInput)
