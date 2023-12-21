@@ -94,9 +94,7 @@ func TestService_AddShipment(t *testing.T) {
 			shipmentRepo := mock_repositories.NewMockShipmentRepository(c)
 			tC.mockBehaviur(shipmentRepo, tC.inputShipment)
 
-			service := shipmentService{
-				shipmentRepository: shipmentRepo,
-			}
+			service := InitShipmentService(shipmentRepo)
 
 			// Call method
 			actualPrice, err := service.AddShipment(tC.input)
