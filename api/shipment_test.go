@@ -8,16 +8,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/Taras-Rm/shipment/helpers"
 	"github.com/Taras-Rm/shipment/services"
 	mock_services "github.com/Taras-Rm/shipment/services/mocks"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
-
-func strToPointerStr(str string) *string {
-	return &str
-}
 
 func TestHandler_addShipment(t *testing.T) {
 	type mockBehaviour func(s *mock_services.MockShipmentService, shipmentRequest services.ShipmentRequest, price float64)
@@ -73,14 +70,14 @@ func TestHandler_addShipment(t *testing.T) {
 			},
 		},
 		{
-			name: "invalid request",
+			name: "invalid request (missed FromName)",
 			mockBehavior: func(s *mock_services.MockShipmentService, shipmentRequest services.ShipmentRequest, price float64) { },
 			requestBody: invalidShipment,
 			outputPrice: 23,
 			expectedStatusCode: http.StatusBadRequest,
 			expectedResponseBody: responseBody{
 				Message: "Invalid request",
-				Error: strToPointerStr("Key: 'ShipmentRequest.FromName' Error:Field validation for 'FromName' failed on the 'required' tag"),
+				Error: helpers.StrToPointerStr("Key: 'ShipmentRequest.FromName' Error:Field validation for 'FromName' failed on the 'required' tag"),
 			},
 		},
 	}
@@ -190,7 +187,7 @@ func TestHandler_getAllShipments(t *testing.T) {
 			outputShipments: nil,
 			expectedResponseBody: responseBody{
 				Message: "Server error",
-				Error: strToPointerStr("some internal error"),
+				Error: helpers.StrToPointerStr("some internal error"),
 			},
 		},
 	}
