@@ -8,6 +8,58 @@ import (
 	"github.com/Taras-Rm/shipment/repositories"
 )
 
+type AddShipmentInput struct {
+	FromName        string  `json:"fromName" binding:"required"`
+	FromEmail       string  `json:"fromEmail" binding:"required"`
+	FromAddress     string  `json:"fromAddress" binding:"required"`
+	FromCountryCode string  `json:"fromCountryCode" binding:"required"`
+	ToName          string  `json:"toName" binding:"required"`
+	ToEmail         string  `json:"toEmail" binding:"required"`
+	ToAddress       string  `json:"toAddress" binding:"required"`
+	ToCountryCode   string  `json:"toCountryCode" binding:"required"`
+	Weight          float64 `json:"weight" binding:"required"`
+}
+
+func (i AddShipmentInput) Validate() error {
+	// check email
+	fromErr := helpers.ValidateEmail(i.FromEmail)
+	toErr := helpers.ValidateEmail(i.ToEmail)
+	if fromErr != nil || toErr != nil {
+		return errors.New("invalid email format")
+	}
+
+	// check names
+	nameFromErr := helpers.ValidateName(i.FromName)
+	nameToErr := helpers.ValidateName(i.ToName)
+	if nameFromErr != nil || nameToErr != nil {
+		return errors.New("invalid name format")
+	}
+
+	// check country codes
+	codeErr := helpers.ValidateCountryCode(i.FromCountryCode)
+	if codeErr != nil {
+		return codeErr
+	}
+	codeErr = helpers.ValidateCountryCode(i.ToCountryCode)
+	if codeErr != nil {
+		return codeErr
+	}
+
+	// check addresses
+	addressFromErr := helpers.ValidateAddress(i.FromAddress)
+	addressToErr := helpers.ValidateAddress(i.ToAddress)
+	if addressFromErr != nil || addressToErr != nil {
+		return errors.New("invalid address format")
+	}
+
+	// check weight
+	if i.Weight <= 0 || i.Weight > 1000 {
+		return errors.New("invalid weight")
+	}
+
+	return nil
+}
+
 // structure of shipment request
 type ShipmentRequest struct {
 	FromName        string  `json:"fromName" binding:"required"`
@@ -39,7 +91,7 @@ type ShipmentResponse struct {
 //go:generate mockgen -source=shipment.go -destination=mocks/shipment.go
 type ShipmentService interface {
 	GetAllShipments() ([]ShipmentResponse, error)
-	AddShipment(shipmentReq *ShipmentRequest) (float64, error)
+	AddShipment(inp AddShipmentInput) (float64, error)
 	GetShipmentByID(id uint) (*ShipmentResponse, error)
 }
 
@@ -63,26 +115,26 @@ func (s *shipmentService) GetAllShipments() ([]ShipmentResponse, error) {
 	return newShipments, nil
 }
 
-func (s *shipmentService) AddShipment(shipmentReq *ShipmentRequest) (float64, error) {
+func (s *shipmentService) AddShipment(inp AddShipmentInput) (float64, error) {
 	// determine Region Rules
-	regionFactor := helpers.RegionRulesFactor(shipmentReq.FromCountryCode)
+	regionFactor := helpers.RegionRulesFactor(inp.FromCountryCode)
 
 	// determine Weight Class Rules
-	weightFactor := helpers.WeightClassRulesFactor(shipmentReq.Weight)
+	weightFactor := helpers.WeightClassRulesFactor(inp.Weight)
 
 	// calculate price
 	price := regionFactor * float64(weightFactor)
 
 	shipment := models.Shipment{
-		FromName:        shipmentReq.FromName,
-		FromEmail:       shipmentReq.FromEmail,
-		FromAddress:     shipmentReq.FromAddress,
-		FromCountryCode: shipmentReq.FromCountryCode,
-		ToName:          shipmentReq.ToName,
-		ToEmail:         shipmentReq.ToEmail,
-		ToAddress:       shipmentReq.ToAddress,
-		ToCountryCode:   shipmentReq.ToCountryCode,
-		Weight:          shipmentReq.Weight,
+		FromName:        inp.FromName,
+		FromEmail:       inp.FromEmail,
+		FromAddress:     inp.FromAddress,
+		FromCountryCode: inp.FromCountryCode,
+		ToName:          inp.ToName,
+		ToEmail:         inp.ToEmail,
+		ToAddress:       inp.ToAddress,
+		ToCountryCode:   inp.ToCountryCode,
+		Weight:          inp.Weight,
 		Price:           price,
 	}
 

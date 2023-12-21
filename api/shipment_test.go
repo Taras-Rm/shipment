@@ -21,30 +21,30 @@ func TestHandler_getShipmentById(t *testing.T) {
 	type mockBehaviour func(s *mock_services.MockShipmentService, shipment *services.ShipmentResponse, shipmentId uint)
 
 	type responseBody struct {
-		Message string `json:"message"`
+		Message  string                     `json:"message"`
 		Shipment *services.ShipmentResponse `json:"shipment"`
-		Error *string `json:"error"`
+		Error    *string                    `json:"error"`
 	}
 
 	shipment := services.ShipmentResponse{
-		ID: 5,
-		FromName: "Taras",
-		FromEmail: "testEmailFrom@g.c",
-		FromAddress: "Kyiv", 
+		ID:              5,
+		FromName:        "Taras",
+		FromEmail:       "testEmailFrom@g.c",
+		FromAddress:     "Kyiv",
 		FromCountryCode: "UA",
-		ToName: "Vitaliy",
-		ToEmail: "testEmailTo@g.c",
-		ToAddress: "Warshaw",
-		ToCountryCode: "PL",
-		Weight: 5.5,
+		ToName:          "Vitaliy",
+		ToEmail:         "testEmailTo@g.c",
+		ToAddress:       "Warshaw",
+		ToCountryCode:   "PL",
+		Weight:          5.5,
 	}
 
-	testCases := []struct{
-		name string
-		mockBehavior mockBehaviour
-		requestIdParam uint
-		outputShipment *services.ShipmentResponse
-		expectedStatusCode int
+	testCases := []struct {
+		name                 string
+		mockBehavior         mockBehaviour
+		requestIdParam       uint
+		outputShipment       *services.ShipmentResponse
+		expectedStatusCode   int
 		expectedResponseBody responseBody
 	}{
 		{
@@ -52,11 +52,11 @@ func TestHandler_getShipmentById(t *testing.T) {
 			mockBehavior: func(s *mock_services.MockShipmentService, shipment *services.ShipmentResponse, shipmentId uint) {
 				s.EXPECT().GetShipmentByID(gomock.Eq(shipmentId)).Return(shipment, nil)
 			},
-			requestIdParam: 5,
-			outputShipment: &shipment,
+			requestIdParam:     5,
+			outputShipment:     &shipment,
 			expectedStatusCode: http.StatusOK,
 			expectedResponseBody: responseBody{
-				Message: "Shipment is getted!",
+				Message:  "Shipment is getted!",
 				Shipment: &shipment,
 			},
 		},
@@ -65,12 +65,12 @@ func TestHandler_getShipmentById(t *testing.T) {
 			mockBehavior: func(s *mock_services.MockShipmentService, shipment *services.ShipmentResponse, shipmentId uint) {
 				s.EXPECT().GetShipmentByID(gomock.Eq(shipmentId)).Return(shipment, errors.New("can not fount shipment"))
 			},
-			requestIdParam: 12,
-			outputShipment: nil,
+			requestIdParam:     12,
+			outputShipment:     nil,
 			expectedStatusCode: http.StatusInternalServerError,
 			expectedResponseBody: responseBody{
 				Message: "Server error",
-				Error: helpers.StrToPointerStr("can not fount shipment"),
+				Error:   helpers.StrToPointerStr("can not fount shipment"),
 			},
 		},
 		{
@@ -78,12 +78,12 @@ func TestHandler_getShipmentById(t *testing.T) {
 			mockBehavior: func(s *mock_services.MockShipmentService, shipment *services.ShipmentResponse, shipmentId uint) {
 				s.EXPECT().GetShipmentByID(gomock.Eq(shipmentId)).Return(shipment, errors.New("can not fount shipment"))
 			},
-			requestIdParam: 12,
-			outputShipment: nil,
+			requestIdParam:     12,
+			outputShipment:     nil,
 			expectedStatusCode: http.StatusInternalServerError,
 			expectedResponseBody: responseBody{
 				Message: "Server error",
-				Error: helpers.StrToPointerStr("can not fount shipment"),
+				Error:   helpers.StrToPointerStr("can not fount shipment"),
 			},
 		},
 	}
@@ -124,154 +124,48 @@ func TestHandler_getShipmentById(t *testing.T) {
 	}
 }
 
-func TestHandler_addShipment(t *testing.T) {
-	type mockBehaviour func(s *mock_services.MockShipmentService, shipmentRequest services.ShipmentRequest, price float64)
-
-	type responseBody struct {
-		Message string `json:"message"`
-		Price float64 `json:"price"`
-		Error *string `json:"error"`
-	}
-
-	shipment1 := services.ShipmentRequest{
-		FromName: "Taras",
-		FromEmail: "testEmailFrom@g.c",
-		FromAddress: "Kyiv", 
-		FromCountryCode: "UA",
-		ToName: "Vitaliy",
-		ToEmail: "testEmailTo@g.c",
-		ToAddress: "Warshaw",
-		ToCountryCode: "PL",
-		Weight: 5.5,
-	}
-
-	invalidShipment := services.ShipmentRequest{
-		FromEmail: "testEmailFrom@g.c",
-		FromAddress: "Kyiv", 
-		FromCountryCode: "UA",
-		ToName: "Vitaliy",
-		ToEmail: "testEmailTo@g.c",
-		ToAddress: "Warshaw",
-		ToCountryCode: "PL",
-		Weight: 5.5,
-	}
-
-	testCases := []struct{
-		name string
-		mockBehavior mockBehaviour
-		requestBody services.ShipmentRequest
-		outputPrice float64
-		expectedStatusCode int
-		expectedResponseBody responseBody
-	}{
-		{
-			name: "OK",
-			mockBehavior: func(s *mock_services.MockShipmentService, shipmentRequest services.ShipmentRequest, price float64) {
-				s.EXPECT().AddShipment(gomock.Eq(&shipmentRequest)).Return(price, nil)
-			},
-			requestBody: shipment1,
-			outputPrice: 23,
-			expectedStatusCode: http.StatusOK,
-			expectedResponseBody: responseBody{
-				Message: "Shipment is added!",
-				Price: 23,
-			},
-		},
-		{
-			name: "invalid request (missed FromName)",
-			mockBehavior: func(s *mock_services.MockShipmentService, shipmentRequest services.ShipmentRequest, price float64) { },
-			requestBody: invalidShipment,
-			outputPrice: 23,
-			expectedStatusCode: http.StatusBadRequest,
-			expectedResponseBody: responseBody{
-				Message: "Invalid request",
-				Error: helpers.StrToPointerStr("Key: 'ShipmentRequest.FromName' Error:Field validation for 'FromName' failed on the 'required' tag"),
-			},
-		},
-	}
-
-	for _, tC := range testCases {
-		t.Run(tC.name, func(t *testing.T) {
-			// Initialize dependencies
-			c := gomock.NewController(t)
-			defer c.Finish()
-
-			serv := mock_services.NewMockShipmentService(c)
-
-			tC.mockBehavior(serv, tC.requestBody, tC.outputPrice)
-
-			// Initialize endpoint
-			r := gin.New()
-			r.POST("", addShipment(serv))
-
-			// Create request
-			w := httptest.NewRecorder()
-			rB, err := json.Marshal(tC.requestBody)
-			if err != nil {
-				t.Fatal(err)
-			}
-			req := httptest.NewRequest("POST", "/", bytes.NewBuffer(rB))
-
-			// Make request
-			r.ServeHTTP(w, req)
-
-			// Require status code
-			require.Equal(t, tC.expectedStatusCode, w.Code)
-
-			// Require response body
-			var actual responseBody
-			err = json.Unmarshal(w.Body.Bytes(), &actual)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			require.Equal(t, tC.expectedResponseBody, actual)
-		})
-	}
-}
-
 func TestHandler_getAllShipments(t *testing.T) {
 	type mockBehaviour func(s *mock_services.MockShipmentService, shipments []services.ShipmentResponse)
 
 	type responseBody struct {
-		Message string `json:"message"`
+		Message   string                      `json:"message"`
 		Shipments []services.ShipmentResponse `json:"shipments"`
-		Error *string `json:"error"`
+		Error     *string                     `json:"error"`
 	}
 
 	shipment1 := services.ShipmentResponse{
-		ID: 1,
-		FromName: "Taras",
-		FromEmail: "testEmailFrom@g.c",
-		FromAddress: "Kyiv", 
+		ID:              1,
+		FromName:        "Taras",
+		FromEmail:       "testEmailFrom@g.c",
+		FromAddress:     "Kyiv",
 		FromCountryCode: "UA",
-		ToName: "Vitaliy",
-		ToEmail: "testEmailTo@g.c",
-		ToAddress: "Warshaw",
-		ToCountryCode: "PL",
-		Weight: 5.5,
-		Price: 1200,
+		ToName:          "Vitaliy",
+		ToEmail:         "testEmailTo@g.c",
+		ToAddress:       "Warshaw",
+		ToCountryCode:   "PL",
+		Weight:          5.5,
+		Price:           1200,
 	}
 
 	shipment2 := services.ShipmentResponse{
-		ID: 2,
-		FromName: "Tom",
-		FromEmail: "testEmailFrom@g.c",
-		FromAddress: "Lviv", 
+		ID:              2,
+		FromName:        "Tom",
+		FromEmail:       "testEmailFrom@g.c",
+		FromAddress:     "Lviv",
 		FromCountryCode: "UA",
-		ToName: "Tim",
-		ToEmail: "testEmailTo@g.c",
-		ToAddress: "Paris",
-		ToCountryCode: "FR",
-		Weight: 12.57,
-		Price: 245.5,
+		ToName:          "Tim",
+		ToEmail:         "testEmailTo@g.c",
+		ToAddress:       "Paris",
+		ToCountryCode:   "FR",
+		Weight:          12.57,
+		Price:           245.5,
 	}
 
-	testCases := []struct{
-		name string
-		mockBehavior mockBehaviour
-		outputShipments []services.ShipmentResponse
-		expectedStatusCode int
+	testCases := []struct {
+		name                 string
+		mockBehavior         mockBehaviour
+		outputShipments      []services.ShipmentResponse
+		expectedStatusCode   int
 		expectedResponseBody responseBody
 	}{
 		{
@@ -280,9 +174,9 @@ func TestHandler_getAllShipments(t *testing.T) {
 				s.EXPECT().GetAllShipments().Return(shipments, nil)
 			},
 			expectedStatusCode: http.StatusOK,
-			outputShipments: []services.ShipmentResponse{shipment1, shipment2},
+			outputShipments:    []services.ShipmentResponse{shipment1, shipment2},
 			expectedResponseBody: responseBody{
-				Message: "Shipments received!",
+				Message:   "Shipments received!",
 				Shipments: []services.ShipmentResponse{shipment1, shipment2},
 			},
 		},
@@ -292,16 +186,16 @@ func TestHandler_getAllShipments(t *testing.T) {
 				s.EXPECT().GetAllShipments().Return(shipments, errors.New("some internal error"))
 			},
 			expectedStatusCode: http.StatusInternalServerError,
-			outputShipments: nil,
+			outputShipments:    nil,
 			expectedResponseBody: responseBody{
 				Message: "Server error",
-				Error: helpers.StrToPointerStr("some internal error"),
+				Error:   helpers.StrToPointerStr("some internal error"),
 			},
 		},
 	}
 
 	gin.SetMode(gin.TestMode)
-	
+
 	for _, tC := range testCases {
 		t.Run(tC.name, func(t *testing.T) {
 			// Initialize dependencies

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -39,41 +40,27 @@ func getAllShipments(shipmentService services.ShipmentService) gin.HandlerFunc {
 
 func addShipment(shipmentService services.ShipmentService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var shipmentReq *services.ShipmentRequest
-
-		// check shipment request
-		err := c.BindJSON(&shipmentReq)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"message": "Invalid request",
-				"error":   err.Error(),
-			})
+		var inp services.AddShipmentInput
+		if err := c.BindJSON(&inp); err != nil {
+			newErrorResponse(c, http.StatusBadRequest, errors.New("invalid input body"))
 			return
 		}
 
-		// validate shipment request
-		err = services.IsValidShipmentRequest(shipmentReq)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"message": "Invalid request",
-				"error":   err.Error(),
-			})
+		// validate add shipment request
+		if err := inp.Validate(); err != nil {
+			newErrorResponse(c, http.StatusBadRequest, err)
 			return
 		}
 
 		// add new shipment to database
-		price, err := shipmentService.AddShipment(shipmentReq)
+		price, err := shipmentService.AddShipment(inp)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": "Server error",
-				"error":   err.Error(),
-			})
+			newErrorResponse(c, http.StatusInternalServerError, err)
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Shipment is added!",
-			"price":   price,
+		c.JSON(http.StatusCreated, gin.H{
+			"price": price,
 		})
 	}
 }

@@ -35,18 +35,18 @@ func (m *MockShipmentService) EXPECT() *MockShipmentServiceMockRecorder {
 }
 
 // AddShipment mocks base method.
-func (m *MockShipmentService) AddShipment(shipmentReq *services.ShipmentRequest) (float64, error) {
+func (m *MockShipmentService) AddShipment(inp services.AddShipmentInput) (float64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddShipment", shipmentReq)
+	ret := m.ctrl.Call(m, "AddShipment", inp)
 	ret0, _ := ret[0].(float64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // AddShipment indicates an expected call of AddShipment.
-func (mr *MockShipmentServiceMockRecorder) AddShipment(shipmentReq interface{}) *gomock.Call {
+func (mr *MockShipmentServiceMockRecorder) AddShipment(inp interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddShipment", reflect.TypeOf((*MockShipmentService)(nil).AddShipment), shipmentReq)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddShipment", reflect.TypeOf((*MockShipmentService)(nil).AddShipment), inp)
 }
 
 // GetAllShipments mocks base method.

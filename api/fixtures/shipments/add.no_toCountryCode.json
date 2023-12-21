@@ -1,0 +1,10 @@
+{
+  "fromName": "Mark",
+  "fromEmail": "testFrom@g.c",
+  "fromAddress": "Lviv, 45",
+  "fromCountryCode": "UA",
+  "toName": "Iryna",
+  "toEmail": "testTo@g.c",
+  "toAddress": "Toronto, 34",
+  "weight": 234.4
+}
