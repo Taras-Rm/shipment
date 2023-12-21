@@ -51,6 +51,7 @@ func ShipmentModelFromDomain(shipment models.Shipment) ShipmentModel {
 	}
 }
 
+//go:generate mockgen -source=shipment.go -destination=mocks/shipment.go
 type ShipmentRepository interface {
 	GetAllShipments() ([]models.Shipment, error)
 	CreateShipment(shipment models.Shipment) error
